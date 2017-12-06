@@ -78,7 +78,8 @@ class TCPServer:
             return False
 
         print('[!] Executing command: {}'.format(command))
-        output = subprocess.run(command, stdout=subprocess.PIPE).stdout
+        process = subprocess.Popen(command, stdout=subprocess.PIPE)
+        output, err = process.communicate()
         conn.send(output)
         return True
 
