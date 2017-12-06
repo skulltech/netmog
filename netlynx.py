@@ -11,6 +11,9 @@ response = client.recv(4096)
 
 print(response)
 
+class TCPClient:
+	def __i
+
 
 class TCPServer:
 	def __init__(self, host='0.0.0.0', port=8000):
@@ -39,3 +42,9 @@ class TCPServer:
 		print('[*] Received: {}'.format(request))
 		conn.send(b'ACK!')
 		conn.close()
+
+	def execute(conn):
+		command = ''
+		while True:
+			chunk = conn.receive(1024)
+			
