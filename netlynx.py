@@ -1,50 +1,97 @@
 import socket
 import threading
+import subprocess
+import argparse
+import random
 
-host = '127.0.0.1'
-port = 4000
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((host, port))
-client.send(b'Hello! Is there anybody in there?!')
-response = client.recv(4096)
+PORT = 5002
 
-print(response)
 
 class TCPClient:
-	def __i
+    def __init__(self):
+        host = '127.0.0.1'
+        port = PORT
+
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((host, port))
+
+    @staticmethod
+    def receive(conn):
+        response = ''
+        while True:
+            chunk = conn.recv(4096)
+            response = response + chunk.encode('UTF-8')
+            if len(chunk) < 4096:
+                break
+        return response
+
+    def execute(self):
+        while True:
+            self.client.send(input().encode('UTF-8'))
+            print(receive(self.client))
 
 
 class TCPServer:
-	def __init__(self, host='0.0.0.0', port=8000):
-		self.host = host
-		self.port = port
-		self.connections = []
+    def __init__(self, host='0.0.0.0', port=PORT):
+        self.host = host
+        self.port = port
+        self.connections = []
 
-		self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.server.bind((self.host, self.port))
-		self.server.listen(5)
-		print('[*] Listening on {}:{}'.format(bind_ip, bind_port))
-		self.mthread = threading.Thread(target=self.mainthread, args=(,))
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind((self.host, self.port))
+        self.server.listen(5)
+        print('[*] Listening on {}:{}'.format(self.host, self.port))
+        self.mainthread()
 
-	def mainthread(self):
-		while True:
-			conn, addr = self.server.accept()
-			print('[*] Accepted connection from: {}:{}'.format(addr[0], addr[1]))
+    def mainthread(self):
+        while True:
+            conn, addr = self.server.accept()
+            print('[*] Accepted connection from: {}:{}'.format(addr[0], addr[1]))
 
-			handler = threading.Thread(target=connhandler, args=(client,))
-			handler.start()
-			self.connections.append(handler)
+            handler = threading.Thread(target=self.connhandler, args=(conn,))
+            handler.start()
+            self.connections.append(handler)
 
-	@staticmethod
-	def connhandler(conn):
-		request = conn.recv(1024)
-		print('[*] Received: {}'.format(request))
-		conn.send(b'ACK!')
-		conn.close()
+    def connhandler(self, conn):
+        conn.send('''
+            Greeting from NetLynx at {}
+            Now it is time to Fuck Shit Up, or as we like to call it, FSU!
+            '''.format(self.host).encode('UTF-8'))
+        
+        while self.execute(conn):
+            pass
+        conn.close()
 
-	def execute(conn):
-		command = ''
-		while True:
-			chunk = conn.receive(1024)
-			
+    def execute(self, conn):
+        conn.send('FSU@NetLynx.. '.encode('UTF-8'))
+
+        command = ''
+        while '\n' not in command:
+            chunk = conn.receive(1024)
+            command = command + chunk.encode('UTF-8')
+        command = command.splitlines()[0]
+
+
+        if command == 'qnl!':
+            return False
+
+        print('[!] Executing command: {}'.format(command))
+        output = subprocess.run(command)
+        conn.send(output)
+        return True
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('mode', help='Whether to send or receive', type=str, choices=['send', 'receive'])
+    args = parser.parse_args()
+    
+    if args.mode=='send':
+        client = TCPClient()
+        client.execute()
+
+    else:
+        server = TCPServer()
+
+if __name__=='__main__':
+    main()
