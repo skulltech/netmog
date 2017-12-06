@@ -21,7 +21,7 @@ class TCPClient:
         response = ''
         while True:
             chunk = conn.recv(4096)
-            response = response + chunk.encode('UTF-8')
+            response = response + chunk.decode('UTF-8')
             if len(chunk) < 4096:
                 break
         return response
@@ -29,7 +29,7 @@ class TCPClient:
     def execute(self):
         while True:
             self.client.send(input().encode('UTF-8'))
-            print(receive(self.client))
+            print(self.receive(self.client))
 
 
 class TCPServer:
@@ -67,17 +67,18 @@ class TCPServer:
         conn.send('FSU@NetLynx.. '.encode('UTF-8'))
 
         command = ''
-        while '\n' not in command:
-            chunk = conn.receive(1024)
-            command = command + chunk.encode('UTF-8')
+        while True:
+            chunk = conn.recv(1024)
+            command = command + chunk.decode('UTF-8')
+            if len(chunk) < 4096:
+                break
         command = command.splitlines()[0]
-
 
         if command == 'qnl!':
             return False
 
         print('[!] Executing command: {}'.format(command))
-        output = subprocess.run(command)
+        output = subprocess.run(command, stdout=subprocess.PIPE).stdout
         conn.send(output)
         return True
 
@@ -93,5 +94,6 @@ def main():
     else:
         server = TCPServer()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()
