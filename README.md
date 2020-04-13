@@ -1,2 +1,2 @@
-# NetLynx
-A netcat replacement (aspiring!) written in Python 3
+# netmog
+A netcat alternative with remote code execution.
