@@ -29,9 +29,12 @@ class Client:
         received = self.receive()
         print(received.decode('UTF-8'))
 
-    def run(self):
+    def run(self, shell=False):
         while True:
-            data = input('[ netmog ] $ ')
+            if shell:
+                data = input('[ netmog ] $ ')
+            else:
+                data = sys.stdin.read()
             self.run_once(data)
 
 
@@ -89,6 +92,8 @@ def main():
     client_parser.add_argument('-t', '--host', required=True, help='target host')
     client_parser.add_argument('-p', '--port', required=True, type=int,
                                help='the port on which the target host is listening on')
+    client_parser.add_argument('-s', '--shell', action='store_true',
+                               help='shell mode, to use with a remote netmog server')
     client_parser.set_defaults(mode='client')
     server_parser = subparser.add_parser('server', help='server mode: for executing commands from remote client')
     server_parser.add_argument('-t', '--host', default='0.0.0.0', help='hostname to bind to')
@@ -104,12 +109,10 @@ def main():
 
     if mode == 'client':
         client = Client(args.host, args.port)
-        data = ''.join(sys.stdin.readlines())
-        if data:
-            client.run_once(data)
-        else:
+        if args.shell:
             print(f'[*] Connected to {args.host}:{args.port}')
-            client.run()
+        client.run(shell=args.shell)
+
     else:
         server = Server(args.host, args.port)
         print(f'[*] Listening on {args.host}:{args.port}')
